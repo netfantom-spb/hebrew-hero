@@ -1,0 +1,15 @@
+{
+  "name": "hebrew-hero",
+  "version": "0.0.1",
+  "description": "\"Hebrew Hero\" is a Chrome extension designed to assist Russian-speaking users in navigating Hebrew-language websites.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com.netfantom:netfantom-spb/hebrew-hero.git"
+  },
+  "author": "Viktor Egorov",
+  "license": "ISC"
+}
