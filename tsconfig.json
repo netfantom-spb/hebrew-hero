@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"module": "esnext",
+		"moduleResolution": "node",
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"strict": true,
+		"target": "es6",
+		"allowJs": false
+	},
+	"include": [
+		"./src/**/*"
+	],
+	"exclude": [
+		"./node_modules"
+	]
+}

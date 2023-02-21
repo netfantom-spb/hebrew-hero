@@ -10,3 +10,8 @@ Add manual tests
 ```
 npm i -D http-server
 ```
+
+Add TypeScript support
+```
+npm i -D typescript @rollup/plugin-typescript
+```

@@ -1,7 +1,7 @@
 import path from 'path';
 import cleanupDir from 'rollup-plugin-cleanup-dir'
 import { chromeExtension, simpleReloader } from 'rollup-plugin-chrome-extension';
-//import typescript from '@rollup/plugin-typescript';
+import typescript from '@rollup/plugin-typescript';
 
 const isProduction = process.env.NODE_ENV === 'production',
  manifestFile = 'src/manifest.json';
@@ -17,7 +17,7 @@ export default {
     plugins: [
         cleanupDir(),
         chromeExtension(),
-        // typescript(),
+        typescript(),
         simpleReloader(),
         // isProduction && zip({ dir: 'releases' })
     ],
