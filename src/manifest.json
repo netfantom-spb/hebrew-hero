@@ -12,8 +12,8 @@
 	"content_scripts": [
 		{
 			"matches": [ "http://localhost/*", "http://127.0.0.1/*" ],
-			"js": [ "./test.ts" ],
-			"css": [ "./test.css" ],
+			"js": [ "./sites/localhost/localhost.ts" ],
+			"css": [ "./sites/localhost/localhost.css" ],
 			"run_at": "document_end"
 		}
 	]

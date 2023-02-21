@@ -1,2 +1,42 @@
 <h1>Hebrew-Hero test page</h1>
-<div class="test-div">This content have to be changed by extension</div>
+<h2>Static content</h2>
+<div class="test-div static">This static content have to be changed by extension</div>
+<div class="test-div static multiple">This static content with multiple changes <span>Not updated</span> and <span>Not
+        updated</span></div>
+
+<h2>Dynamic content</h2>
+<div class="dynamic-container-1">Dynamic loading...</div>
+<div class="dynamic-container-2">Dynamic loading...</div>
+
+<script>
+    setTimeout(() => {
+        const container = document.querySelector(".dynamic-container-1"),
+            p = document.createElement('p'),
+            span = document.createElement('span');
+
+        container.replaceChildren();
+        p.textContent = 'This is dynamic element: ';
+        span.textContent = 'Not updated';
+        span.className = 'update-target';
+        p.appendChild(span);
+        container.appendChild(p);
+    }, 6000);
+
+    setTimeout(() => {
+        const container = document.querySelector(".dynamic-container-2"),
+            p = document.createElement('p'),
+            span = document.createElement('span'),
+            sep = document.createTextNode('\u00A0');
+
+        container.replaceChildren();
+        p.textContent = 'This is dynamic elements: ';
+        span.textContent = 'Not updated';
+        span.className = 'update-target';
+        p.appendChild(span)
+        p.appendChild(sep);
+        p.appendChild(span.cloneNode(true));
+        p.appendChild(sep.cloneNode());
+        p.appendChild(span.cloneNode(true));
+        container.appendChild(p);
+    }, 2000)
+</script>
