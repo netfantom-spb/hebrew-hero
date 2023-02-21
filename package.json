@@ -2,14 +2,27 @@
   "name": "hebrew-hero",
   "version": "0.0.1",
   "description": "\"Hebrew Hero\" is a Chrome extension designed to assist Russian-speaking users in navigating Hebrew-language websites.",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rollup -c",
+    "start": "rollup -c -w",
+    "prerelease": "del build -R /Q",
+    "release": "cross-env NODE_ENV=production rollup -c"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com.netfantom:netfantom-spb/hebrew-hero.git"
   },
+  "browserslist": [
+    "last 3 Chrome version"
+  ],
   "author": "Viktor Egorov",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "rollup": "^3.17.2",
+    "rollup-plugin-chrome-extension": "^3.6.10",
+    "rollup-plugin-cleanup-dir": "^1.0.7",
+    "rollup-plugin-zip": "^1.0.3"
+  }
 }
