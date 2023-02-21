@@ -13,7 +13,7 @@ npm i -D http-server
 
 Add TypeScript support
 ```
-npm i -D typescript @rollup/plugin-typescript
+npm i -D typescript @rollup/plugin-typescript @types/chrome
 ```
 
 Add release build scripts 

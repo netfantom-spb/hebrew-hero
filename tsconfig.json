@@ -5,7 +5,7 @@
 		"noImplicitReturns": true,
 		"noUnusedLocals": true,
 		"strict": true,
-		"target": "es6",
+		"target": "esnext",
 		"allowJs": false
 	},
 	"include": [
