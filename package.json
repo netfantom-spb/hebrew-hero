@@ -8,7 +8,8 @@
     "build": "rollup -c",
     "start": "rollup -c -w",
     "prerelease": "del build -R /Q",
-    "release": "cross-env NODE_ENV=production rollup -c"
+    "release": "cross-env NODE_ENV=production rollup -c",
+    "testsrv": "npx http-server tests/testpage -p 9000"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
   "author": "Viktor Egorov",
   "license": "ISC",
   "devDependencies": {
+    "http-server": "^14.1.1",
     "rollup": "^3.17.2",
     "rollup-plugin-chrome-extension": "^3.6.10",
     "rollup-plugin-cleanup-dir": "^1.0.7",

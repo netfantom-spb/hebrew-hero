@@ -1,6 +1,6 @@
 {
 	"manifest_version": 3,
-	"name": "Hebrew Hero",
+	"name": "Hebrew-Hero",
 	"homepage_url": "https://github.com/netfantom-spb/hebrew-hero",	
 	"minimum_chrome_version": "100",
 	"icons": {
@@ -11,7 +11,7 @@
 	],
 	"content_scripts": [
 		{
-			"matches": [ "http://localhost/*" ],
+			"matches": [ "http://localhost/*", "http://127.0.0.1/*" ],
 			"js": [ "./test.js" ],
 			"css": [ "./test.css" ],
 			"run_at": "document_end"
