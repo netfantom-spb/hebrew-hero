@@ -15,3 +15,8 @@ Add TypeScript support
 ```
 npm i -D typescript @rollup/plugin-typescript
 ```
+
+Add release build scripts 
+```
+npm i -D cross-env @rollup/plugin-strip @rollup/plugin-terser rollup-plugin-zip
+```
