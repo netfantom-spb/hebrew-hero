@@ -2,12 +2,47 @@ console.log('Loaded localhost.ts');
 
 import _ from "lodash";
 
-import { RuleConfig, TargetConfig, ActionConfig, ActionConfigTextContent, ActionConfigValue, LocalizedTextConfig } from './localhost.config';
-import rulesConfig from "./localhost.config";
+import { SiteConfig, PageConfig, RuleConfig, TargetConfig, ActionConfig, ActionConfigTextContent, ActionConfigValue, LocalizedTextConfig } from './localhost.config';
+import siteConfig from "./localhost.config";
 
 import { ExtensionConfiguration } from '../../properties'
 
 // Types and classes for worker
+class Site {
+    pages: Page[];
+
+    constructor(siteConfig: SiteConfig) {
+        this.pages = siteConfig.pages.map(pageConfig => new Page(pageConfig));
+    }
+
+    async run(url: string) {
+        return Promise.allSettled(
+            this.pages.map(page => page.run(url))
+        );
+    }
+}
+
+class Page {
+    protected urlPattern: RegExp;
+    protected rules: Rule[];
+
+    constructor(pageConfig: PageConfig) {
+        this.urlPattern = new RegExp(pageConfig.url || '.*');
+        this.rules = pageConfig.rules.map(ruleConfig => new Rule(ruleConfig));
+    }
+
+    async run(url: string) {
+        if (url.match(this.urlPattern)) {
+            console.log('URL "%s" matches "%s"', url, this.urlPattern);
+            return Promise.allSettled(
+                this.rules.map(rule => rule.run())
+            );
+        }
+        else {
+            return;
+        }
+    }
+}
 
 class Rule {
     public target: Target;
@@ -50,7 +85,7 @@ class Rule {
                         // run nested rules if exists
                         if (this.rules) {
                             await Promise.allSettled(
-                                rules.map(rule => rule.run(elem as Element))
+                                this.rules.map(rule => rule.run(elem as Element))
                             );
                         }
                     });
@@ -182,15 +217,15 @@ class ActionValue extends Action {
         super();
         this.value = (actionConfig as ActionConfigValue).value;
     }
+
+    async run(element: Element): Promise<void> {
+        if ('textContent' in element) {
+            if (!('he' in this.value)) {
+                this.value.he = element.getAttribute('value') || undefined;
+            }
+            element.setAttribute('value', this.value[ExtensionConfiguration.lang] || '');
+        }
+    }
 }
 
-function normalizeConfig(rulesConfig: RuleConfig[]): Rule[] {
-    return rulesConfig.map(ruleConfig => {
-        return new Rule(ruleConfig);
-    });
-}
-
-const rules = normalizeConfig(rulesConfig);
-console.log(rules);
-
-rules.forEach(rule => rule.run());
+new Site(siteConfig).run(window.location.href);
