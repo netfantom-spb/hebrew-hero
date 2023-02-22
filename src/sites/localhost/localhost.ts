@@ -2,38 +2,8 @@ console.log('Loaded localhost.ts');
 
 import _ from "lodash";
 
-// Types for site configs
-type RuleConfig = {
-    target: TargetConfig,
-    action: ActionConfig
-}
-
-type TargetConfig = {
-    selector: string,
-    multiple?: boolean,
-    wait?: boolean | TargetWaitConfig
-}
-
-type TargetWaitConfig = {
-    delay: number,
-    retry: number
-}
-
-type ActionConfig = ActionConfigTextContent | ActionConfigValue;
-
-type ActionConfigTextContent = {
-    textContent: LocalizedTextConfig
-}
-
-type ActionConfigValue = {
-    value: LocalizedTextConfig
-}
-
-type LocalizedTextConfig = {
-    he?: string,
-    ru?: string,
-    en?: string
-}
+import { RuleConfig, TargetConfig, ActionConfig, ActionConfigTextContent, ActionConfigValue, LocalizedTextConfig } from './localhost.config';
+import rulesConfig from "./localhost.config";
 
 
 // Types and classes for worker
@@ -61,6 +31,26 @@ class Rule implements IRule {
         this.target = new Target(ruleConfig.target);
         this.action = ActionFactory.createAction(ruleConfig.action);
     }
+
+    async run(): Promise<void> {
+        this.target.find().then(target => {
+            if (target instanceof Element) {
+                if (this.action) {
+                    this.action.run(target);
+                }
+            }
+            else if (target instanceof NodeList) {
+                (target as NodeList).forEach(elem => {
+                    if (this.action) {
+                        this.action.run(elem)
+                    }
+                });
+            }
+            else {
+                throw new Error('Unknown target type');
+            }
+        });
+}
 }
 
 class Target implements ITarget {
@@ -98,6 +88,43 @@ class Target implements ITarget {
             this.wait = DefaultNowaitConfig;
         }
     }
+
+    async find(): Promise<Element | NodeList | null> {
+        if (this.multiple) {
+            const elems = document.querySelectorAll(this.selector);
+            if (elems.length == 0) {
+                if (this.wait.retry > 0) {
+                    this.wait.retry--;
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve(this.find());
+                        }, this.wait.delay)
+                    })
+                }
+                else {
+                    console.warn('Element not found %s', this.selector);
+                }
+            }
+            return elems;
+        }
+        else {
+            const elem = document.querySelector(this.selector);
+            if (elem === null) {
+                if (this.wait.retry > 0) {
+                    this.wait.retry--;
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve(this.find());
+                        }, this.wait.delay)
+                    })
+                }
+                else {
+                    console.warn('Element not found %s', this.selector);
+                }
+            }
+            return elem;
+        }
+    }
 }
 
 
@@ -129,6 +156,7 @@ class ActionTextContent extends Action {
     }
 
     run(element: any) {
+        console.log('Run Forest, run')
         if (!('he' in this.textContent)) {
             this.textContent.he = element.textContent
         }
@@ -145,75 +173,7 @@ class ActionValue extends Action {
     }
 }
 
-const rulesConfig: RuleConfig[] = [
-    {
-        target: {
-            selector: '.test-div.static',
-            multiple: false
-        },
-        action: {
-            textContent: {
-                en: 'This content have JUST changed by Hebrew-Hero'
-            }
-        }
-    },
-    {
-        target: {
-            selector: '.test-div.static.multiple > span',
-            multiple: true
-        },
-        action: {
-            textContent: {
-                en: 'UPDATED'
-            }
-        }
-    },
-    {
-        target: {
-            selector: '.dynamic-container-1 .update-target',
-            multiple: false,
-            wait: {
-                delay: 2000,
-                retry: 6
-            }
-        },
-        action: {
-            textContent: {
-                en: 'UPDATED'
-            }
-        }
-    },
-    {
-        target: {
-            selector: '.dynamic-container-2 .update-target',
-            multiple: true,
-            wait: {
-                delay: 1000,
-                retry: 6
-            }
-        },
-        action: {
-            textContent: {
-                en: 'UPDATED'
-            }
-        }
-    },
-    {
-        target: {
-            selector: '.dynamic-container-3 .update-target',
-            multiple: false,
-            wait: {
-                delay: 500,
-                retry: 3
-            }
-        },
-        action: {
-            textContent: {
-                en: 'UPDATED'
-            }
-        }
-    }
-]
+
 
 
 function normalizeConfig(rulesConfig: RuleConfig[]): Rule[] {
@@ -225,63 +185,4 @@ function normalizeConfig(rulesConfig: RuleConfig[]): Rule[] {
 const rules = normalizeConfig(rulesConfig);
 console.log(rules);
 
-
-rules.forEach(rule => proceedRule(rule));
-
-async function proceedRule(rule: Rule) {
-    const target = await getTargets(rule.target);
-    if (target instanceof Element) {
-        if (rule.action) {
-            applyAction(target, rule.action);
-        }
-    }
-    else if (target instanceof NodeList) {
-        if (rule.action) {
-            (target as NodeList).forEach(elem => applyAction(elem, rule.action as Action));
-        }
-    }
-    else {
-        throw new Error('Unknown target type');
-    }
-}
-
-async function getTargets(target: Target): Promise<Element | NodeList | null> {
-    if (target?.multiple) {
-        const elems = document.querySelectorAll(target.selector);
-        if (elems.length == 0) {
-            if (target.wait.retry > 0) {
-                target.wait.retry--;
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve(getTargets(target));
-                    }, target.wait.delay)
-                })
-            }
-            else {
-                console.warn('Element not found %s', target.selector);
-            }
-        }
-        return elems;
-    }
-    else {
-        const elem = document.querySelector(target.selector);
-        if (elem === null) {
-            if (target.wait.retry > 0) {
-                target.wait.retry--;
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve(getTargets(target));
-                    }, target.wait.delay)
-                })
-            }
-            else {
-                console.warn('Element not found %s', target.selector);
-            }
-        }
-        return elem;
-    }
-}
-
-function applyAction(element: Element | Node, action: Action) {
-    action.run(element);
-}
+rules.forEach(rule => rule.run());
