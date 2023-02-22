@@ -20,3 +20,8 @@ Add release build scripts
 ```
 npm i -D cross-env @rollup/plugin-strip @rollup/plugin-terser rollup-plugin-zip
 ```
+
+Add lodash 
+```
+npm i -D @rollup/plugin-node-resolve @rollup/plugin-commonjs lodash @types/lodash
+```
