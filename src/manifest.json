@@ -15,6 +15,12 @@
 			"js": [ "./sites/localhost/localhost.ts" ],
 			"css": [ "./sites/localhost/localhost.css" ],
 			"run_at": "document_end"
+		},
+		{
+			"matches": ["https://*.leumi.co.il/*"],
+			"js": [ "./sites/leumi.co.il/leumi.co.il.ts"],
+			"css": [ "./sites/leumi.co.il/leumi.co.il.css"],
+			"run_at": "document_end" 
 		}
 	]
 }

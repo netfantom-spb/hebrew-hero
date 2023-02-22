@@ -6,5 +6,5 @@ type Configuration = {
 }
 
 export const ExtensionConfiguration: Configuration = {
-    lang: 'en'
+    lang: 'ru'
 }

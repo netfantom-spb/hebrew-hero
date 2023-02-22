@@ -10,7 +10,7 @@ import commonjs from '@rollup/plugin-commonjs'
 
 
 const isProduction = process.env.NODE_ENV === 'production',
- manifestFile = 'src/manifest.json';
+    manifestFile = 'src/manifest.json';
 
 export default {
     input: manifestFile,
@@ -22,18 +22,26 @@ export default {
     },
     plugins: [
         cleanupDir(),
-       
+
         chromeExtension(),
-        
+
         typescript(),
 
-        isProduction && strip(),
+        isProduction && strip({
+            include: [
+                '**/*.js',
+                '**/*.ts'
+            ],
+            functions: [
+                'console.*',
+            ],
+        }),
 
         resolve(),
         commonjs(),
 
         isProduction && terser(),
-        
+
         isProduction && zip({ dir: 'releases' }),
 
         simpleReloader(),
