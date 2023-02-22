@@ -1,7 +1,10 @@
+import { Languages } from "../../languages"
+
 // Types for site configs
 export type RuleConfig = {
     target: TargetConfig,
-    action: ActionConfig
+    action?: ActionConfig,
+    rules?: RuleConfig[]
 }
 
 export type TargetConfig = {
@@ -26,9 +29,7 @@ export type ActionConfigValue = {
 }
 
 export type LocalizedTextConfig = {
-    he?: string,
-    ru?: string,
-    en?: string
+    [Property in Languages]?: string
 }
 
 const rulesConfig: RuleConfig[] = [
@@ -59,7 +60,7 @@ const rulesConfig: RuleConfig[] = [
             selector: '.dynamic-container-1 .update-target',
             multiple: false,
             wait: {
-                delay: 2000,
+                delay: 1000,
                 retry: 6
             }
         },
@@ -98,6 +99,34 @@ const rulesConfig: RuleConfig[] = [
                 en: 'UPDATED'
             }
         }
+    },
+    {
+        target: {
+            selector: '.container-for-nested-elements'
+        },
+        rules: [
+            {
+                target: {
+                    selector: 'li:nth-child(1) > span.nested-element'
+                },
+                action: {
+                    textContent: {
+                        en: 'UPDATED-1'
+                    }
+                }
+            },
+            {
+                target: {
+                    selector: 'li:nth-child(2) > span.nested-element'
+                },
+                action: {
+                    textContent: {
+                        en: 'UPDATED-2'
+                    }
+                }
+            }
+        ]
+
     }
 ]
 

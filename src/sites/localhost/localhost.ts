@@ -5,55 +5,64 @@ import _ from "lodash";
 import { RuleConfig, TargetConfig, ActionConfig, ActionConfigTextContent, ActionConfigValue, LocalizedTextConfig } from './localhost.config';
 import rulesConfig from "./localhost.config";
 
+import { ExtensionConfiguration } from '../../properties'
 
 // Types and classes for worker
 
-type IRule = {
-    target: ITarget,
-    action: IAction
-}
-type ITarget = {
-    selector: string,
-    multiple: boolean,
-    wait: {
-        delay: number,
-        retry: number
-    }
-}
-
-type IAction = any;
-
-class Rule implements IRule {
+class Rule {
     public target: Target;
     public action: Action | undefined;
+    public rules: Rule[] | undefined;
 
     constructor(ruleConfig: RuleConfig) {
         this.target = new Target(ruleConfig.target);
-        this.action = ActionFactory.createAction(ruleConfig.action);
+        if (ruleConfig.action) {
+            this.action = ActionFactory.createAction(ruleConfig.action);
+        }
+        if (ruleConfig.rules && ruleConfig.rules.length > 0) {
+            this.rules = ruleConfig.rules.map(rule => new Rule(rule));
+        }
     }
 
-    async run(): Promise<void> {
-        this.target.find().then(target => {
-            if (target instanceof Element) {
-                if (this.action) {
-                    this.action.run(target);
-                }
-            }
-            else if (target instanceof NodeList) {
-                (target as NodeList).forEach(elem => {
+    async run(parentElement?: Element): Promise<void> {
+        return this.target.find(parentElement)
+            .then(async target => {
+                // single element
+                if (target instanceof Element) {
+                    // run action if defined
                     if (this.action) {
-                        this.action.run(elem)
+                        await this.action.run(target);
                     }
-                });
-            }
-            else {
-                throw new Error('Unknown target type');
-            }
-        });
-}
+                    // run nested rules if exists
+                    if (this.rules) {
+                        await Promise.allSettled(
+                            this.rules.map(rule => rule.run(target))
+                        )
+                    }
+                }
+                // multiple elements
+                else if (target instanceof NodeList) {
+                    (target as NodeList).forEach(async elem => {
+                        if (this.action) {
+                            await this.action.run(elem as Element)
+                        }
+
+                        // run nested rules if exists
+                        if (this.rules) {
+                            await Promise.allSettled(
+                                rules.map(rule => rule.run(elem as Element))
+                            );
+                        }
+                    });
+                }
+                else {
+                    throw new Error('Unknown target type');
+                }
+            });
+    }
 }
 
-class Target implements ITarget {
+class Target {
     public selector: string;
     public multiple: boolean;
     public wait: {
@@ -75,7 +84,6 @@ class Target implements ITarget {
             };
 
         if (_.isBoolean(targetConfig.wait)) {
-
             this.wait = targetConfig.wait ? DefaultWaitConfig : DefaultNowaitConfig;
         }
         else if (_.isObject(targetConfig.wait)) {
@@ -89,9 +97,11 @@ class Target implements ITarget {
         }
     }
 
-    async find(): Promise<Element | NodeList | null> {
+    async find(parentElement?: Element): Promise<Element | NodeList | null> {
+        const root = parentElement ?? document;
+
         if (this.multiple) {
-            const elems = document.querySelectorAll(this.selector);
+            const elems = root.querySelectorAll(this.selector);
             if (elems.length == 0) {
                 if (this.wait.retry > 0) {
                     this.wait.retry--;
@@ -108,7 +118,7 @@ class Target implements ITarget {
             return elems;
         }
         else {
-            const elem = document.querySelector(this.selector);
+            const elem = root.querySelector(this.selector);
             if (elem === null) {
                 if (this.wait.retry > 0) {
                     this.wait.retry--;
@@ -144,7 +154,7 @@ class ActionFactory {
 }
 
 abstract class Action {
-    run(element: any): void { };
+    async run(element: Element): Promise<void> { };
 }
 
 class ActionTextContent extends Action {
@@ -155,12 +165,13 @@ class ActionTextContent extends Action {
         this.textContent = (actionConfig as ActionConfigTextContent).textContent;
     }
 
-    run(element: any) {
-        console.log('Run Forest, run')
-        if (!('he' in this.textContent)) {
-            this.textContent.he = element.textContent
+    async run(element: Element): Promise<void> {
+        if ('textContent' in element) {
+            if (!('he' in this.textContent)) {
+                this.textContent.he = element.textContent || '';
+            }
+            element.textContent = this.textContent[ExtensionConfiguration.lang] || '';
         }
-        element.textContent = this.textContent.en;
     }
 }
 
@@ -172,9 +183,6 @@ class ActionValue extends Action {
         this.value = (actionConfig as ActionConfigValue).value;
     }
 }
-
-
-
 
 function normalizeConfig(rulesConfig: RuleConfig[]): Rule[] {
     return rulesConfig.map(ruleConfig => {

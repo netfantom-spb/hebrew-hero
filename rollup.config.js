@@ -26,11 +26,14 @@ export default {
         chromeExtension(),
         
         typescript(),
+
+        isProduction && strip(),
+
         resolve(),
         commonjs(),
 
-        isProduction && strip(),
         isProduction && terser(),
+        
         isProduction && zip({ dir: 'releases' }),
 
         simpleReloader(),

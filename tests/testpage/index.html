@@ -8,6 +8,14 @@
 <div class="dynamic-container-1">Dynamic loading...</div>
 <div class="dynamic-container-2">Dynamic loading...</div>
 
+<h2>Inherited elements</h2>
+<div class="container-for-nested-elements">This is container where there are 2 inherited elements:
+    <ul>
+        <li>First element <span class="nested-element">NOT UPDATED</span></li>
+        <li>Second element <span class="nested-element">NOT UPDATED</span></li>
+    </ul>
+</div>
+
 <script>
     setTimeout(() => {
         const container = document.querySelector(".dynamic-container-1"),
