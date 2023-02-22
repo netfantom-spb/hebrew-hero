@@ -19,7 +19,21 @@ type TargetWaitConfig = {
     retry: number
 }
 
-type ActionConfig = any;
+type ActionConfig = ActionConfigTextContent | ActionConfigValue;
+
+type ActionConfigTextContent = {
+    textContent: LocalizedTextConfig
+}
+
+type ActionConfigValue = {
+    value: LocalizedTextConfig
+}
+
+type LocalizedTextConfig = {
+    he?: string,
+    ru?: string,
+    en?: string
+}
 
 
 // Types and classes for worker
@@ -41,11 +55,11 @@ type IAction = any;
 
 class Rule implements IRule {
     public target: Target;
-    public action: Action;
+    public action: Action | undefined;
 
     constructor(ruleConfig: RuleConfig) {
         this.target = new Target(ruleConfig.target);
-        this.action = new Action(ruleConfig.action);
+        this.action = ActionFactory.createAction(ruleConfig.action);
     }
 }
 
@@ -86,14 +100,50 @@ class Target implements ITarget {
     }
 }
 
-class Action implements IAction {
-    public textContent;
-    
-    constructor(actionConfig: ActionConfig) {
-        this.textContent = actionConfig.textContent;
+
+
+class ActionFactory {
+    static createAction(actionConfig: ActionConfig): Action | undefined {
+        if ('textContent' in actionConfig) {
+            return new ActionTextContent(actionConfig);
+        }
+        else if ('value' in actionConfig) {
+            return new ActionValue(actionConfig);
+        }
+        else {
+            return undefined;
+        }
     }
 }
 
+abstract class Action {
+    run(element: any): void { };
+}
+
+class ActionTextContent extends Action {
+    public textContent: LocalizedTextConfig;
+
+    constructor(actionConfig: ActionConfig) {
+        super();
+        this.textContent = (actionConfig as ActionConfigTextContent).textContent;
+    }
+
+    run(element: any) {
+        if (!('he' in this.textContent)) {
+            this.textContent.he = element.textContent
+        }
+        element.textContent = this.textContent.en;
+    }
+}
+
+class ActionValue extends Action {
+    public value: LocalizedTextConfig;
+
+    constructor(actionConfig: ActionConfig) {
+        super();
+        this.value = (actionConfig as ActionConfigValue).value;
+    }
+}
 
 const rulesConfig: RuleConfig[] = [
     {
@@ -102,7 +152,9 @@ const rulesConfig: RuleConfig[] = [
             multiple: false
         },
         action: {
-            textContent: 'This content have JUST changed by Hebrew-Hero'
+            textContent: {
+                en: 'This content have JUST changed by Hebrew-Hero'
+            }
         }
     },
     {
@@ -111,7 +163,9 @@ const rulesConfig: RuleConfig[] = [
             multiple: true
         },
         action: {
-            textContent: 'UPDATED'
+            textContent: {
+                en: 'UPDATED'
+            }
         }
     },
     {
@@ -124,7 +178,9 @@ const rulesConfig: RuleConfig[] = [
             }
         },
         action: {
-            textContent: 'UPDATED'
+            textContent: {
+                en: 'UPDATED'
+            }
         }
     },
     {
@@ -137,7 +193,9 @@ const rulesConfig: RuleConfig[] = [
             }
         },
         action: {
-            textContent: 'UPDATED'
+            textContent: {
+                en: 'UPDATED'
+            }
         }
     },
     {
@@ -150,7 +208,9 @@ const rulesConfig: RuleConfig[] = [
             }
         },
         action: {
-            textContent: 'UPDATED'
+            textContent: {
+                en: 'UPDATED'
+            }
         }
     }
 ]
@@ -171,10 +231,14 @@ rules.forEach(rule => proceedRule(rule));
 async function proceedRule(rule: Rule) {
     const target = await getTargets(rule.target);
     if (target instanceof Element) {
-        applyAction(target, rule.action);
+        if (rule.action) {
+            applyAction(target, rule.action);
+        }
     }
     else if (target instanceof NodeList) {
-        (target as NodeList).forEach(elem => applyAction(elem, rule.action));
+        if (rule.action) {
+            (target as NodeList).forEach(elem => applyAction(elem, rule.action as Action));
+        }
     }
     else {
         throw new Error('Unknown target type');
@@ -218,8 +282,6 @@ async function getTargets(target: Target): Promise<Element | NodeList | null> {
     }
 }
 
-function applyAction(element: Element | Node, action: any) {
-    if (action?.textContent) {
-        element.textContent = action.textContent;
-    }
+function applyAction(element: Element | Node, action: Action) {
+    action.run(element);
 }
