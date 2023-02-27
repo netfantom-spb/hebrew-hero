@@ -30,9 +30,34 @@ class Page {
     async run(url: string) {
         if (url.match(this.urlPattern)) {
             console.log('URL "%s" matches "%s"', url, this.urlPattern);
-            return Promise.allSettled(
-                this.rules.map(rule => rule.run())
-            );
+
+            let lastUrl: string = '';
+            let timer: number | null = null;
+
+            return new MutationObserver(() => {
+                console.debug('Mutation observer event', location.href);
+                if (lastUrl !== location.href) {
+                    lastUrl = location.href;
+                    console.debug('=>>>> Re-run rules');
+                    if (timer) {
+                        console.debug('!!!Found re-run timer, clearing it!!!')
+                        clearTimeout(timer);
+                        timer == null;
+                    }
+                    timer = setTimeout(() => {
+                        timer = null;
+                        return Promise.allSettled(
+                            this.rules.map(rule => rule.run())
+                        )
+                    }, 1000
+                    );
+                }
+            }).observe(document, { subtree: true, childList: true })
+
+
+            // return Promise.allSettled(
+            //     this.rules.map(rule => rule.run())
+            // );
         }
         else {
             return;
@@ -132,7 +157,7 @@ class Rule {
                     });
                 }
                 else {
-                    throw new Error('Unknown target type');
+                    //throw new Error('Unknown target type');
                 }
             });
     }

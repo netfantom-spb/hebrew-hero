@@ -17,7 +17,7 @@
 			"run_at": "document_end"
 		},
 		{
-			"matches": ["https://*.leumi.co.il/*"],
+			"matches": ["https://*.leumi.co.il/*", "https://hb2.bankleumi.co.il/*"],
 			"js": [ "./sites/leumi.co.il/leumi.co.il.ts"],
 			"css": [ "./sites/leumi.co.il/leumi.co.il.css"],
 			"run_at": "document_end" 
